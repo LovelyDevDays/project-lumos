@@ -1,0 +1,4 @@
+CODEOWNERS @jh1104
+
+*.go @jh1104
+*.proto @jh1104

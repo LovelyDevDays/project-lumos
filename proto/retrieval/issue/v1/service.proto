@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package retrieval.issue.v1;
+
+option go_package = "github.com/devafterdark/project-lumos/proto/retrieval/issue/v1;issue";
+
+// 이슈 검색 서비스.
+service IssueRetrievalService {
+  // 이슈를 검색하고 찾은 결과를 반환합니다.
+  rpc Retrieve(RetrieveRequest) returns (RetrieveResponse);
+}
+
+// 이슈 검색 요청 메시지.
+message RetrieveRequest {
+  // 검색 할 이슈 키 목록.
+  repeated string issue_keys = 1;
+}
+
+// 이슈 검색 응답 메시지.
+message RetrieveResponse {
+  // 검색된 이슈 목록.
+  repeated Issue issues = 1;
+}
+
+// 이슈 정보.
+message Issue {
+  // 이슈 키.
+  string key = 1;
+  // 이슈 제목.
+  string title = 2;
+  // 이슈 내용.
+  string content = 3;
+  // 이슈 댓글.
+  repeated string comments = 4;
+}

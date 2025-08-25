@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package retrieval.passage.v1;
+
+option go_package = "github.com/devafterdark/project-lumos/proto/retrieval/passage/v1;passage";
+
+// 패시지 검색 서비스.
+service PassageRetrievalService {
+  // 패시지를 검색하고 찾은 결과를 반환합니다.
+  rpc Retrieve(RetrieveRequest) returns (RetrieveResponse);
+}
+
+// 패시지 검색 요청 메시지.
+message RetrieveRequest {
+  // 검색 쿼리.
+  string query = 1;
+  // 검색 결과 수 제한.
+  int32 limit = 2;
+}
+
+// 패시지 검색 응답 메시지.
+message RetrieveResponse {
+  // 검색된 패시지 목록.
+  repeated Passage passages = 1;
+}
+
+// 패시지 정보.
+message Passage {
+  // 패시지 스코어.
+  float score = 1;
+  // 패시지 내용.
+  bytes content = 2;
+}
