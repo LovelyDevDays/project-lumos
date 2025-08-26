@@ -6,6 +6,6 @@ import (
 	"github.com/devafterdark/project-lumos/pkg/slack/event"
 )
 
-type EventHandler interface {
+type Handler interface {
 	HandleEventsAPI(ctx context.Context, payload *event.EventsAPIPayload)
 }

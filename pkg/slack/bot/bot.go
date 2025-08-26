@@ -11,10 +11,10 @@ import (
 )
 
 type Bot struct {
-	handler EventHandler
+	handler Handler
 }
 
-func NewBot(handler EventHandler) *Bot {
+func NewBot(handler Handler) *Bot {
 	return &Bot{handler: handler}
 }
 
