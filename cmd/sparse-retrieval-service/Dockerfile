@@ -1,28 +1,4 @@
-# Stage 1: Proto generation
-FROM python:3.12-slim AS proto-builder
-
-WORKDIR /build
-
-# Install protobuf compiler and tools  
-RUN apt-get update && apt-get install -y \
-    protobuf-compiler \
-    && rm -rf /var/lib/apt/lists/* \
-    && pip install --no-cache-dir grpcio-tools
-
-# Copy proto files
-COPY proto/ ./proto/
-
-# Generate Python protobuf code
-RUN mkdir -p gen/python && \
-    python -m grpc_tools.protoc \
-    -I./proto \
-    --python_out=gen/python \
-    --grpc_python_out=gen/python \
-    --pyi_out=gen/python \
-    proto/retrieval/passage/v1/*.proto \
-    proto/retrieval/issue/v1/*.proto
-
-# Stage 2: Python dependencies builder
+# Stage 1: Python dependencies builder
 FROM python:3.13-slim AS deps-builder
 
 WORKDIR /build
@@ -38,7 +14,7 @@ RUN apt-get update && apt-get install -y \
 COPY cmd/sparse-retrieval-service/requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
-# Stage 3: Final runtime image
+# Stage 2: Final runtime image
 FROM python:3.13-slim
 
 WORKDIR /app
@@ -52,8 +28,8 @@ RUN apt-get update && apt-get install -y \
 # Copy Python packages from deps-builder
 COPY --from=deps-builder /root/.local /root/.local
 
-# Copy generated protobuf code
-COPY --from=proto-builder /build/gen ./gen
+# Copy already generated protobuf code from project
+COPY gen/python ./gen/python
 
 # Copy application code
 COPY cmd/sparse-retrieval-service/ ./cmd/sparse-retrieval-service/
