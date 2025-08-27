@@ -3,7 +3,9 @@ package bot
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"log/slog"
+	"net"
 
 	"github.com/gorilla/websocket"
 
@@ -66,7 +68,9 @@ func receiveEvent(conn *websocket.Conn) chan event.SocketEvent {
 	go func() {
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
-			slog.Error("failed to read websocket message", slog.Any("error", err))
+			if !errors.Is(err, net.ErrClosed) {
+				slog.Error("failed to read websocket message", slog.Any("error", err))
+			}
 			close(ch)
 			return
 		}
