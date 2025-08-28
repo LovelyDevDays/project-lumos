@@ -1,44 +1,34 @@
-# Stage 1: Python dependencies builder
-FROM python:3.13-slim AS deps-builder
+# Ultra-minimal multi-stage Alpine build
+# Target: < 50MB with pre-compiled dependencies
+
+# Stage 1: Build dependencies
+FROM python:3.13-alpine3.22 AS builder
 
 WORKDIR /build
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
-    python3-dev \
-    && rm -rf /var/lib/apt/lists/*
+# Install build dependencies temporarily
+RUN apk add --no-cache gcc musl-dev libffi-dev
 
-# Copy and install Python dependencies
-COPY cmd/sparse-retrieval-service/requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
+# Copy and install minimal requirements (only gRPC and protobuf)
+COPY cmd/sparse-retrieval-service/requirements-minimal.txt .
+RUN pip install --user --no-cache-dir -r requirements-minimal.txt
 
-# Stage 2: Final runtime image
-FROM python:3.13-slim
+# Stage 2: Runtime image
+FROM python:3.13-alpine3.22
 
 WORKDIR /app
 
-# Install only runtime dependencies (minimal)
-RUN apt-get update && apt-get install -y \
-    libgomp1 \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Install only essential runtime library
+RUN apk add --no-cache libstdc++ && rm -rf /var/cache/apk/*
 
-# Copy Python packages from deps-builder
-COPY --from=deps-builder /root/.local /root/.local
+# Copy pre-compiled packages from builder
+COPY --from=builder /root/.local/lib /usr/local/lib/
 
-# Copy already generated protobuf code from project
-COPY gen/python ./gen/python
+# Copy minimal application code
+COPY gen/python/retrieval /app/retrieval
+COPY cmd/sparse-retrieval-service/main.py /app/
+COPY cmd/sparse-retrieval-service/app /app/app
 
-# Copy application code
-COPY cmd/sparse-retrieval-service/ ./cmd/sparse-retrieval-service/
-
-# Make sure scripts are in PATH
-ENV PATH=/root/.local/bin:$PATH
-ENV PYTHONPATH=/app:/app/gen/python:/root/.local/lib/python3.13/site-packages
-
-# Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV GRPC_PORT=50051
 ENV QDRANT_HOST=qdrant
@@ -46,17 +36,18 @@ ENV QDRANT_PORT=6333
 ENV COLLECTION_NAME=jira_bm42_full
 ENV MAX_WORKERS=10
 
-# Create non-root user for security (disabled for now)
-# RUN useradd -m -u 1000 appuser && \
-#     chown -R appuser:appuser /app
-# USER appuser
+# Clean up Python cache
+RUN find /usr/local -type f -name "*.pyc" -delete && \
+    find /usr/local -type d -name "__pycache__" -delete && \
+    find /usr/local -type f -name "*.pyi" -delete && \
+    find /usr/local -type f -name "*.pyx" -delete
 
-# Expose gRPC port
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app \
+    GRPC_PORT=50051
+
+USER nobody
 EXPOSE 50051
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD python -c "import grpc; channel = grpc.insecure_channel('localhost:50051'); exit(0 if channel.channel_ready() else 1)" || exit 1
-
-# Run the server
-CMD ["python", "cmd/sparse-retrieval-service/main.py"]
+CMD ["python", "main.py"]
