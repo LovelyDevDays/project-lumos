@@ -53,7 +53,7 @@ func (h *Handler) HandleEventsAPI(ctx context.Context, payload *event.EventsAPIP
 			_, err := c.AssistantSetStatus(ctx, &slack.AssistantSetStatusRequest{
 				Channel:         channelID,
 				Status:          "Preparing magic...",
-				ThreadTimestamp: ec.Event.OfAssistantThreadStarted.AssistantThread.ThreadTimestamp,
+				ThreadTimestamp: ec.Event.OfAssistantThreadStarted.AssistantThread.Timestamp,
 			})
 			return err
 		})
@@ -67,7 +67,7 @@ func (h *Handler) HandleEventsAPI(ctx context.Context, payload *event.EventsAPIP
 			_, err := c.PostMessage(ctx, &slack.PostMessageRequest{
 				Channel:         channelID,
 				Text:            "What spell should I cast?",
-				ThreadTimestamp: ec.Event.OfAssistantThreadStarted.AssistantThread.ThreadTimestamp,
+				ThreadTimestamp: ec.Event.OfAssistantThreadStarted.AssistantThread.Timestamp,
 			})
 			return err
 		})

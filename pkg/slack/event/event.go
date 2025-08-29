@@ -53,13 +53,13 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 }
 
 type MessageEvent struct {
-	Channel      string          `json:"channel"`
-	User         string          `json:"user"`
-	ParentUserID string          `json:"parent_user_id,omitempty"`
-	Text         string          `json:"text"`
-	Timestamp    slack.Timestamp `json:"ts"`
-	EventTs      slack.Timestamp `json:"event_ts"`
-	ChannelType  string          `json:"channel_type"`
+	Channel          string          `json:"channel"`
+	User             string          `json:"user"`
+	ParentUserID     string          `json:"parent_user_id,omitempty"`
+	Text             string          `json:"text"`
+	MessageTimestamp slack.Timestamp `json:"ts"`
+	EventTimestamp   slack.Timestamp `json:"event_ts"`
+	ChannelType      string          `json:"channel_type"`
 }
 
 type AssistantThreadContext struct {
@@ -69,18 +69,18 @@ type AssistantThreadContext struct {
 }
 
 type AssistantThread struct {
-	Context         AssistantThreadContext `json:"context"`
-	UserID          string                 `json:"user_id"`
-	ChannelID       string                 `json:"channel_id"`
-	ThreadTimestamp slack.Timestamp        `json:"thread_ts"`
+	Context   AssistantThreadContext `json:"context"`
+	UserID    string                 `json:"user_id"`
+	ChannelID string                 `json:"channel_id"`
+	Timestamp slack.Timestamp        `json:"thread_ts"`
 }
 
 type AssistantThreadStartedEvent struct {
-	EventTimestamp  slack.Timestamp `json:"event_ts"`
+	Timestamp       slack.Timestamp `json:"event_ts"`
 	AssistantThread AssistantThread `json:"assistant_thread"`
 }
 
 type AssistantThreadContextChangedEvent struct {
-	EventTimestamp  slack.Timestamp `json:"event_ts"`
+	Timestamp       slack.Timestamp `json:"event_ts"`
 	AssistantThread AssistantThread `json:"assistant_thread"`
 }

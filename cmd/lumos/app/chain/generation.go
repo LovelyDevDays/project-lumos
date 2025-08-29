@@ -25,13 +25,14 @@ func WithResponseGeneration(handler chat.Handler) chat.HandlerFunc {
 
 		passages := PassagesFrom(ctx)
 		if len(passages) == 0 {
-			chat = chat.WithContext(WithResponse(ctx, "no passages found"))
+			chat = chat.WithContext(WithResponse(ctx, "관련된 정보를 찾을 수 없습니다."))
 			handler.HandleChat(chat)
 			return
 		}
 
 		// TODO: implement response generation
+		ctx = WithResponse(ctx, `"생성된 답변"`)
 
-		handler.HandleChat(chat)
+		handler.HandleChat(chat.WithContext(ctx))
 	})
 }

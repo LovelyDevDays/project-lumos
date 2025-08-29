@@ -31,11 +31,17 @@ func (b *BotHandler) HandleEventsAPI(ctx context.Context, payload *event.EventsA
 	case event.EventTypeAssistantThreadContextChanged:
 		// TODO: Implement thread context changed handling
 	case event.EventTypeMessage:
-		b.chatHandler.HandleChat(&chat.Chat{
+		if e.OfMessage.User == e.OfMessage.ParentUserID {
+			// Ignore messages from the bot itself
+			return
+		}
+		c := &chat.Chat{
 			Channel:   e.OfMessage.Channel,
-			Timestamp: e.OfMessage.Timestamp,
+			Timestamp: e.OfMessage.EventTimestamp,
 			Thread:    []string{e.OfMessage.Text},
-		})
+		}
+		c = c.WithContext(ctx)
+		b.chatHandler.HandleChat(c)
 	default:
 		slog.Warn("unknown event type", slog.String("type", string(e.Type)))
 	}
